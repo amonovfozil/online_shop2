@@ -75,10 +75,17 @@ class CartPageScreen extends StatelessWidget {
                           ),
                           height: 40,
                           width: 40,
-                          child: Image.asset(
-                            cart.Photo,
-                            fit: BoxFit.cover,
-                          ),
+                          child: cart.Photo.startsWith('assets/')
+                              ? Image.asset(
+                                  cart.Photo,
+                                  width: 100,
+                                  height: 220,
+                                )
+                              : Image.network(
+                                  cart.Photo,
+                                  width: 100,
+                                  height: 220,
+                                ),
                         ),
                         title: Text(
                           cart.title,

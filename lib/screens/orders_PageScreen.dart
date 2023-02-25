@@ -41,9 +41,17 @@ class OrderPageScrren extends StatelessWidget {
                     children: order.carts
                         .map(
                           (cart) => ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage: AssetImage(cart.Photo),
-                            ),
+                            leading: cart.Photo.startsWith('assets/')
+                                ? CircleAvatar(
+                                    radius: 25,
+                                    backgroundColor: cart.backgraund,
+                                    backgroundImage: AssetImage(cart.Photo),
+                                  )
+                                : CircleAvatar(
+                                    radius: 25,
+                                    backgroundColor: cart.backgraund,
+                                    backgroundImage: NetworkImage(cart.Photo),
+                                  ),
                             title: Text(
                               cart.title,
                               style: TextStyle(fontWeight: FontWeight.w600),

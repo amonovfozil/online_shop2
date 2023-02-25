@@ -32,11 +32,17 @@ class _InfoProductScreenState extends State<InfoProductScreen> {
             children: [
               Container(
                 width: double.infinity,
-                child: Image.asset(
-                  products.image,
-                  width: 100,
-                  height: 220,
-                ),
+                child: products.image.startsWith('assets/')
+                    ? Image.asset(
+                        products.image,
+                        width: 100,
+                        height: 220,
+                      )
+                    : Image.network(
+                        products.image,
+                        width: 100,
+                        height: 220,
+                      ),
               ),
               Positioned(
                 top: 10,

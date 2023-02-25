@@ -33,10 +33,17 @@ class ManegmentProductsScreen extends StatelessWidget {
                   final product = productiteams.list[index];
                   return Card(
                     child: ListTile(
-                        leading: CircleAvatar(
-                          radius: 25,
-                          backgroundImage: AssetImage(product.image),
-                        ),
+                        leading: product.image.startsWith('assets/')
+                            ? CircleAvatar(
+                                radius: 25,
+                                backgroundColor: product.backgarund,
+                                backgroundImage: AssetImage(product.image),
+                              )
+                            : CircleAvatar(
+                                radius: 25,
+                                backgroundColor: product.backgarund,
+                                backgroundImage: NetworkImage(product.image),
+                              ),
                         title: Text(
                           product.title,
                           style: TextStyle(

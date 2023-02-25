@@ -33,7 +33,12 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(primarySwatch: Colors.amber),
+        theme: ThemeData(
+          primarySwatch: Colors.amber,
+          textTheme: TextTheme(
+            bodyMedium: TextStyle(fontWeight: FontWeight.w500),
+          ),
+        ),
         routes: {
           "/": (context) => Home_Screen(),
           "InfoProduct": (context) => InfoProductScreen(),

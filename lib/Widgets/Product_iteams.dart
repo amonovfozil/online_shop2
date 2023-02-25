@@ -38,9 +38,13 @@ class ProductIteams extends StatelessWidget {
                 child: SizedBox(
                   height: 220,
                   width: 220,
-                  child: Image.asset(
-                    products.image,
-                  ),
+                  child: products.image.startsWith('assets/')
+                      ? Image.asset(
+                          products.image,
+                        )
+                      : Image.network(
+                          products.image,
+                        ),
                 ),
               ),
             ),
@@ -58,7 +62,7 @@ class ProductIteams extends StatelessWidget {
                         color: Colors.white),
                   ),
                   Text(
-                    products.status,
+                    "${products.info.substring(0, 30)}...",
                     style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -86,11 +90,11 @@ class ProductIteams extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: index == 0
+              child: products.status
                   ? Chip(
                       backgroundColor: Colors.white,
                       label: Text(
-                        'yangi',
+                        "Yangi",
                         style: TextStyle(color: products.backgarund),
                       ),
                     )
