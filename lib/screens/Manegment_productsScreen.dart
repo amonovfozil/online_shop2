@@ -62,7 +62,9 @@ class ManegmentProductsScreen extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              onPressed: () {},
+                              onPressed: () => Navigator.of(context).pushNamed(
+                                  'AddProduct',
+                                  arguments: product.id),
                               icon: Icon(
                                 Icons.edit,
                                 size: 22,

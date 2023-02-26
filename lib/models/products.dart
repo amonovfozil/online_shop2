@@ -20,7 +20,7 @@ class product with ChangeNotifier {
     required this.info,
     this.amount = 1,
     required this.price,
-    required this.backgarund,
+    this.backgarund = Colors.grey,
     this.discount = 0,
     this.isfavority = false,
   });
@@ -107,9 +107,12 @@ class productIteam with ChangeNotifier {
     );
     notifyListeners();
   }
-  // void UpdateProduct(productId){
-  //   _products.
-  // }
+
+  void UpdateProduct(product EditingProduct) {
+    final indexProduct =
+        _products.indexWhere((element) => element.id == EditingProduct.id);
+    _products[indexProduct] = EditingProduct;
+  }
 
   void delete(productid) {
     _products.removeWhere((product) => product.id == productid);

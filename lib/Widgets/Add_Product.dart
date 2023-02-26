@@ -26,6 +26,26 @@ class _AddProductState extends State<AddProduct> {
     backgarund: Colors.white,
   );
 
+  var init = true;
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    if (init) {
+      final productid = ModalRoute.of(context)!.settings.arguments;
+      if (productid != null) {
+        final _EditingProduct =
+            Provider.of<productIteam>(context, listen: false)
+                .list
+                .firstWhere((product) => product.id == productid);
+
+        _product = _EditingProduct;
+      }
+      print(_product.id);
+    }
+    init = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final productIteams = Provider.of<productIteam>(context);
@@ -42,26 +62,25 @@ class _AddProductState extends State<AddProduct> {
     void SaveTextForm() {
       _TextFormId.currentState!.validate();
       var checktext = _TextFormId.currentState!.validate();
-      if (_product.image == '') {
-        setState(() {
-          hasImage = false;
-        });
-      } else {
-        setState(() {
-          hasImage = true;
-        });
-      }
+      setState(() {
+        hasImage = _product.image.isNotEmpty;
+      });
       if (checktext && hasImage) {
         _TextFormId.currentState!.save();
-        productIteams.AddNewproduct(
-          _product.title,
-          _product.info,
-          _product.image,
-          _product.price,
-          _product.discount,
-          CurrentColor,
-          status,
-        );
+        if (_product.id.isEmpty) {
+          productIteams.AddNewproduct(
+            _product.title,
+            _product.info,
+            _product.image,
+            _product.price,
+            _product.discount,
+            CurrentColor,
+            status,
+          );
+        } else {
+          productIteams.UpdateProduct(_product);
+        }
+
         Navigator.of(context).pop();
       }
     }
@@ -81,6 +100,7 @@ class _AddProductState extends State<AddProduct> {
                     labelText: 'URL:',
                     border: OutlineInputBorder(),
                   ),
+                  initialValue: _product.image,
                   onSaved: (newValue) {
                     setState(() {
                       _product = product(
@@ -200,6 +220,7 @@ class _AddProductState extends State<AddProduct> {
                     labelText: 'Nomi:',
                     border: OutlineInputBorder(),
                   ),
+                  initialValue: _product.title,
                   onSaved: (newValue) {
                     _product = product(
                         id: _product.id,
@@ -223,6 +244,7 @@ class _AddProductState extends State<AddProduct> {
                       alignLabelWithHint: true,
                       border: OutlineInputBorder(),
                     ),
+                    initialValue: _product.info,
                     onSaved: (newValue) {
                       _product = product(
                           id: _product.id,
@@ -245,6 +267,8 @@ class _AddProductState extends State<AddProduct> {
                     labelText: 'Narxi:',
                     border: OutlineInputBorder(),
                   ),
+                  initialValue:
+                      _product.price == 0 ? '' : _product.price.toString(),
                   onSaved: (newValue) {
                     _product = product(
                         id: _product.id,
@@ -268,6 +292,9 @@ class _AddProductState extends State<AddProduct> {
                     labelText: 'Chegirma %:',
                     border: OutlineInputBorder(),
                   ),
+                  initialValue: _product.discount == 0
+                      ? ''
+                      : _product.discount.toString(),
                   onSaved: (newValue) {
                     _product = product(
                         id: _product.id,
@@ -340,10 +367,15 @@ class _AddProductState extends State<AddProduct> {
                       height: 200,
                       width: double.infinity,
                       child: _product.image != ''
-                          ? Image.network(
-                              _product.image,
-                              fit: BoxFit.cover,
-                            )
+                          ? _product.image.startsWith('assets/')
+                              ? Image.asset(
+                                  _product.image,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.network(
+                                  _product.image,
+                                  fit: BoxFit.cover,
+                                )
                           : Center(
                               child: Text(
                               'Rasm URLni kiriting!',
