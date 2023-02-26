@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:online_shop/models/carts.dart';
+import 'package:http/http.dart' as http;
+import 'package:string_to_color/string_to_color.dart';
 
 class product with ChangeNotifier {
   final String id;
@@ -27,55 +31,51 @@ class product with ChangeNotifier {
 
   void changefavority() {
     isfavority = !isfavority;
+    var Url = Uri.parse(
+        'https://onlineshop2-3dee7-default-rtdb.firebaseio.com/product/${id}.json');
+
+    http.patch(
+      Url,
+      body: jsonEncode(
+        {"isfavority": isfavority},
+      ),
+    );
     notifyListeners();
   }
 }
 
 class productIteam with ChangeNotifier {
-  List<product> _products = [
-    product(
-      id: 'p1',
-      title: 'Macbook Air',
-      image: 'assets/images/mac.png',
-      status: true,
-      info:
-          'ajoyib ,Yangi, tanlovda adashmadingiz, tanlovingizdagi mahsulotlarini bizdan oling, Yangi, 2021-yil, M1 chip, 8/256 SSD ',
-      discount: 0,
-      price: 889,
-      backgarund: Colors.amber,
-    ),
-    product(
-      id: 'p2',
-      title: 'IpHone 11 pro ',
-      image: 'assets/images/phone.png',
-      info:
-          ' ajoyib ,Yangi, tanlovda adashmadingiz, tanlovingizdagi mahsulotlarini bizdan oling, 8/256 SSD, black/blueGrey ',
-      discount: 5,
-      price: 1024,
-      backgarund: Colors.blueGrey,
-    ),
-    product(
-      id: 'p3',
-      title: 'Air Pods',
-      image: 'assets/images/pods.png',
-      status: true,
-      info:
-          'ajoyib ,Yangi, tanlovda adashmadingiz, tanlovingizdagi mahsulotlarini bizdan oling,Yangi, batary 4-5 soat,oq/qora ',
-      discount: 15,
-      price: 300,
-      backgarund: Colors.teal,
-    ),
-    product(
-      id: 'p4',
-      title: 'Iwatch Pro',
-      image: 'assets/images/watch.png',
-      info:
-          'ajoyib ,Yangi, tanlovda adashmadingiz, tanlovingizdagi mahsulotlarini bizdan oling,Yangi, android 11, bluetooth 5.2 ',
-      discount: 10,
-      price: 600,
-      backgarund: Colors.grey,
-    ),
-  ];
+  List<product> _products = [];
+  Future<void> getProductFromFireBase() async {
+    final url = Uri.parse(
+        'https://onlineshop2-3dee7-default-rtdb.firebaseio.com/product.json');
+
+    final respons = await http.get(url);
+    if (jsonDecode(respons.body) != null) {
+      final dataBase = jsonDecode(respons.body) as Map<String, dynamic>;
+      final List<product> _loadingProducts = [];
+
+      dataBase.forEach((productID, products) {
+        _loadingProducts.insert(
+          0,
+          product(
+            id: productID,
+            title: products['title'],
+            image: products['image'],
+            info: products['info'],
+            price: products['price'],
+            backgarund: ColorUtils.stringToColor(products['color']),
+            status: products['status'],
+            discount: products['discount'],
+            isfavority: products['isfavority'],
+          ),
+        );
+      });
+
+      _products = _loadingProducts;
+      notifyListeners();
+    }
+  }
 
   List<product> get list {
     return _products;
@@ -85,36 +85,70 @@ class productIteam with ChangeNotifier {
     return _products.where((product) => product.isfavority).toList();
   }
 
-  void AddNewproduct(
-    String title,
-    String info,
-    String url,
-    double price,
-    double discount,
-    Color bacgraundColor,
-    bool status,
-  ) {
-    _products.add(
-      product(
+  Future<void> AddNewproduct(product Product) {
+    var Url = Uri.parse(
+        'https://onlineshop2-3dee7-default-rtdb.firebaseio.com/product.json');
+
+    return http
+        .post(
+      Url,
+      body: jsonEncode({
+        "id": UniqueKey().toString(),
+        "title": Product.title,
+        "image": Product.image,
+        "info": Product.info,
+        "price": Product.price,
+        "color": Product.backgarund.toString(),
+        "status": Product.status,
+        "discount": Product.discount,
+        'isfavority': Product.isfavority,
+      }),
+    )
+        .then((respons) {
+      _products.add(product(
         id: 'p${_products.length + 1}',
-        title: title,
-        image: url,
-        info: info,
-        price: price,
-        backgarund: bacgraundColor,
-        status: status,
+        title: Product.title,
+        image: Product.image,
+        info: Product.info,
+        price: Product.price,
+        backgarund: Product.backgarund,
+        status: Product.status,
+      ));
+      notifyListeners();
+    });
+  }
+
+  Future<void> UpdateProduct(product EditingProduct) async {
+    final indexProduct =
+        _products.indexWhere((element) => element.id == EditingProduct.id);
+    _products[indexProduct] = EditingProduct;
+
+    var Url = Uri.parse(
+        'https://onlineshop2-3dee7-default-rtdb.firebaseio.com/product/${EditingProduct.id}.json');
+
+    http.patch(
+      Url,
+      body: jsonEncode(
+        {
+          "title": EditingProduct.title,
+          "image": EditingProduct.image,
+          "info": EditingProduct.info,
+          "price": EditingProduct.price,
+          "color": EditingProduct.backgarund.toString(),
+          "status": EditingProduct.status,
+          "discount": EditingProduct.discount,
+        },
       ),
     );
     notifyListeners();
   }
 
-  void UpdateProduct(product EditingProduct) {
-    final indexProduct =
-        _products.indexWhere((element) => element.id == EditingProduct.id);
-    _products[indexProduct] = EditingProduct;
-  }
+  Future<void> delete(productid) async {
+    var Url = Uri.parse(
+        'https://onlineshop2-3dee7-default-rtdb.firebaseio.com/product/${productid}.json');
 
-  void delete(productid) {
+    http.delete(Url);
+
     _products.removeWhere((product) => product.id == productid);
     notifyListeners();
   }

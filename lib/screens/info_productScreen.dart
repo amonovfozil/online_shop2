@@ -128,21 +128,24 @@ class _InfoProductScreenState extends State<InfoProductScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SingleChildScrollView(
-                        child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      child: Card(
-                        child: Container(
-                          width: double.infinity,
-                          child: Text(
-                            products.info,
-                            style: TextStyle(
-                                fontSize: 16, fontStyle: FontStyle.italic),
+                    Container(
+                      height: 197,
+                      child: SingleChildScrollView(
+                          child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        child: Card(
+                          child: Container(
+                            width: double.infinity,
+                            child: Text(
+                              products.info,
+                              style: TextStyle(
+                                  fontSize: 16, fontStyle: FontStyle.italic),
+                            ),
                           ),
                         ),
-                      ),
-                    ))
+                      )),
+                    )
                   ],
                 ),
               ),

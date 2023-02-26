@@ -11,12 +11,6 @@ class AddProduct extends StatefulWidget {
 }
 
 class _AddProductState extends State<AddProduct> {
-  bool status = false;
-  Color pickerColor = Colors.white;
-  Color CurrentColor = Colors.white;
-  final _imageFormId = GlobalKey<FormState>();
-  final _TextFormId = GlobalKey<FormState>();
-  var hasImage = true;
   product _product = product(
     id: '',
     title: '',
@@ -24,7 +18,16 @@ class _AddProductState extends State<AddProduct> {
     info: '',
     price: 0,
     backgarund: Colors.white,
+    status: false,
   );
+  bool status = false;
+  Color CurrentColor = Colors.white;
+  Color pickerColor = Colors.white;
+
+  final _imageFormId = GlobalKey<FormState>();
+  final _TextFormId = GlobalKey<FormState>();
+  var hasImage = true;
+  var isLoading = false;
 
   var init = true;
   @override
@@ -41,7 +44,6 @@ class _AddProductState extends State<AddProduct> {
 
         _product = _EditingProduct;
       }
-      print(_product.id);
     }
     init = false;
   }
@@ -54,34 +56,34 @@ class _AddProductState extends State<AddProduct> {
       var checkImage = _imageFormId.currentState!.validate();
       if (checkImage) {
         _imageFormId.currentState!.save();
-        print(_product.image);
         Navigator.of(context).pop();
       }
     }
 
-    void SaveTextForm() {
+    SaveTextForm() {
       _TextFormId.currentState!.validate();
       var checktext = _TextFormId.currentState!.validate();
       setState(() {
         hasImage = _product.image.isNotEmpty;
       });
       if (checktext && hasImage) {
+        setState(() {
+          isLoading = true;
+        });
         _TextFormId.currentState!.save();
         if (_product.id.isEmpty) {
-          productIteams.AddNewproduct(
-            _product.title,
-            _product.info,
-            _product.image,
-            _product.price,
-            _product.discount,
-            CurrentColor,
-            status,
+          productIteams.AddNewproduct(_product).then(
+            (_) {
+              setState(() {
+                isLoading = false;
+              });
+              Navigator.of(context).pop();
+            },
           );
         } else {
           productIteams.UpdateProduct(_product);
+          Navigator.of(context).pop();
         }
-
-        Navigator.of(context).pop();
       }
     }
 
@@ -109,7 +111,10 @@ class _AddProductState extends State<AddProduct> {
                         image: newValue!,
                         info: _product.info,
                         price: _product.price,
-                        backgarund: _product.backgarund,
+                        discount: _product.discount,
+                        status: status,
+                        isfavority: _product.isfavority,
+                        backgarund: CurrentColor,
                       );
                     });
                   },
@@ -176,9 +181,7 @@ class _AddProductState extends State<AddProduct> {
               ElevatedButton(
                 onPressed: () {
                   setState(() {
-                    print(CurrentColor);
                     CurrentColor = pickerColor;
-                    print(CurrentColor);
                     Navigator.of(context).pop();
                   });
                 },
@@ -208,189 +211,206 @@ class _AddProductState extends State<AddProduct> {
           ),
         ],
       ),
-      body: Form(
-        key: _TextFormId,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'Nomi:',
-                    border: OutlineInputBorder(),
-                  ),
-                  initialValue: _product.title,
-                  onSaved: (newValue) {
-                    _product = product(
-                        id: _product.id,
-                        title: newValue!,
-                        image: _product.image,
-                        info: _product.info,
-                        price: _product.price,
-                        backgarund: _product.backgarund);
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Iltimos Mahsulot nomini kiriting';
-                    }
-                  },
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      labelText: 'Tarif:',
-                      alignLabelWithHint: true,
-                      border: OutlineInputBorder(),
-                    ),
-                    initialValue: _product.info,
-                    onSaved: (newValue) {
-                      _product = product(
-                          id: _product.id,
-                          title: _product.title,
-                          image: _product.image,
-                          info: newValue!,
-                          price: _product.price,
-                          backgarund: _product.backgarund);
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Iltimos Mahsulotga ta`rif bering';
-                      } else if (value.length < 10) {
-                        return 'Ta`rif kamida 10 so`zdan iborat bo`lsin';
-                      }
-                    }),
-                SizedBox(height: 10),
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'Narxi:',
-                    border: OutlineInputBorder(),
-                  ),
-                  initialValue:
-                      _product.price == 0 ? '' : _product.price.toString(),
-                  onSaved: (newValue) {
-                    _product = product(
-                        id: _product.id,
-                        title: _product.title,
-                        image: _product.image,
-                        info: _product.info,
-                        price: double.parse(newValue!),
-                        backgarund: _product.backgarund);
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Iltimos Mahsulot nomini kiriting';
-                    } else if (double.tryParse(value) == null) {
-                      return 'Iltimos To`gri qiymat kirgizing';
-                    }
-                  },
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'Chegirma %:',
-                    border: OutlineInputBorder(),
-                  ),
-                  initialValue: _product.discount == 0
-                      ? ''
-                      : _product.discount.toString(),
-                  onSaved: (newValue) {
-                    _product = product(
-                        id: _product.id,
-                        title: _product.title,
-                        image: _product.image,
-                        info: _product.info,
-                        price: _product.price,
-                        discount: double.parse(newValue!),
-                        backgarund: _product.backgarund);
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Iltimos Mahsulot nomini kiriting';
-                    } else if (double.tryParse(value) == null) {
-                      return 'Iltimos To`gri qiymat kirgizing';
-                    } else if (double.parse(value) > 100) {
-                      return '100% dan kichik miqdor kiriting';
-                    }
-                  },
-                ),
-                SizedBox(height: 10),
-                Row(
-                  children: [
-                    Text('Yangimi:'),
-                    Checkbox(
-                      side: BorderSide(),
-                      activeColor: Colors.teal,
-                      checkColor: Colors.white,
-                      value: status,
-                      onChanged: (value) {
-                        setState(() {
-                          status = value!;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Text('Orqa fon rangini tanlang:  '),
-                    InkWell(
-                      onTap: () => changecolors(),
-                      child: Container(
-                        height: 19,
-                        width: 19,
-                        decoration: BoxDecoration(
-                          color: CurrentColor,
-                          border: Border.all(
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Form(
+              key: _TextFormId,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        decoration: InputDecoration(
+                          labelText: 'Nomi:',
+                          border: OutlineInputBorder(),
+                        ),
+                        initialValue: _product.title,
+                        onSaved: (newValue) {
+                          _product = product(
+                              id: _product.id,
+                              title: newValue!,
+                              image: _product.image,
+                              info: _product.info,
+                              price: _product.price,
+                              discount: _product.discount,
+                              status: status,
+                              isfavority: _product.isfavority,
+                              backgarund: CurrentColor);
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Iltimos Mahsulot nomini kiriting';
+                          }
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      TextFormField(
+                          maxLines: 4,
+                          decoration: InputDecoration(
+                            labelText: 'Tarif:',
+                            alignLabelWithHint: true,
+                            border: OutlineInputBorder(),
+                          ),
+                          initialValue: _product.info,
+                          onSaved: (newValue) {
+                            _product = product(
+                                id: _product.id,
+                                title: _product.title,
+                                image: _product.image,
+                                info: newValue!,
+                                price: _product.price,
+                                discount: _product.discount,
+                                status: status,
+                                isfavority: _product.isfavority,
+                                backgarund: CurrentColor);
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Iltimos Mahsulotga ta`rif bering';
+                            } else if (value.length < 10) {
+                              return 'Ta`rif kamida 10 so`zdan iborat bo`lsin';
+                            }
+                          }),
+                      SizedBox(height: 10),
+                      TextFormField(
+                        decoration: InputDecoration(
+                          labelText: 'Narxi:',
+                          border: OutlineInputBorder(),
+                        ),
+                        initialValue: _product.price == 0
+                            ? ''
+                            : _product.price.toString(),
+                        onSaved: (newValue) {
+                          _product = product(
+                            id: _product.id,
+                            title: _product.title,
+                            image: _product.image,
+                            info: _product.info,
+                            discount: _product.discount,
+                            status: status,
+                            isfavority: _product.isfavority,
+                            price: double.parse(newValue!),
+                            backgarund: CurrentColor,
+                          );
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Iltimos Mahsulot nomini kiriting';
+                          } else if (double.tryParse(value) == null) {
+                            return 'Iltimos To`gri qiymat kirgizing';
+                          }
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      TextFormField(
+                        decoration: InputDecoration(
+                          labelText: 'Chegirma %:',
+                          border: OutlineInputBorder(),
+                        ),
+                        initialValue: _product.discount == 0
+                            ? ''
+                            : _product.discount.toString(),
+                        onSaved: (newValue) {
+                          _product = product(
+                            id: _product.id,
+                            title: _product.title,
+                            image: _product.image,
+                            info: _product.info,
+                            price: _product.price,
+                            status: status,
+                            isfavority: _product.isfavority,
+                            discount: double.parse(newValue!),
+                            backgarund: CurrentColor,
+                          );
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Iltimos Mahsulot nomini kiriting';
+                          } else if (double.tryParse(value) == null) {
+                            return 'Iltimos To`gri qiymat kirgizing';
+                          } else if (double.parse(value) > 100) {
+                            return '100% dan kichik miqdor kiriting';
+                          }
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Text('Yangimi:'),
+                          Checkbox(
+                            side: BorderSide(),
+                            activeColor: Colors.teal,
+                            checkColor: Colors.white,
+                            value: status,
+                            onChanged: (value) {
+                              setState(() {
+                                status = value!;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Text('Orqa fon rangini tanlang:  '),
+                          InkWell(
+                            onTap: () => changecolors(),
+                            child: Container(
+                              height: 19,
+                              width: 19,
+                              decoration: BoxDecoration(
+                                color: CurrentColor,
+                                border: Border.all(
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                      SizedBox(height: 10),
+                      Card(
+                        clipBehavior: Clip.hardEdge,
+                        margin: const EdgeInsets.all(0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(
                             width: 1,
+                            color: hasImage ? Colors.black : Colors.red,
                           ),
                         ),
-                      ),
-                    )
-                  ],
+                        child: InkWell(
+                          onTap: () => EnterImageUrl(),
+                          child: Container(
+                            height: 200,
+                            width: double.infinity,
+                            child: _product.image != ''
+                                ? _product.image.startsWith('assets/')
+                                    ? Image.asset(
+                                        _product.image,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Image.network(
+                                        _product.image,
+                                        fit: BoxFit.cover,
+                                      )
+                                : Center(
+                                    child: Text(
+                                    'Rasm URLni kiriting!',
+                                    style: TextStyle(
+                                      color:
+                                          hasImage ? Colors.black : Colors.red,
+                                    ),
+                                  )),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
                 ),
-                SizedBox(height: 10),
-                Card(
-                  clipBehavior: Clip.hardEdge,
-                  margin: const EdgeInsets.all(0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(
-                      width: 1,
-                      color: hasImage ? Colors.black : Colors.red,
-                    ),
-                  ),
-                  child: InkWell(
-                    onTap: () => EnterImageUrl(),
-                    child: Container(
-                      height: 200,
-                      width: double.infinity,
-                      child: _product.image != ''
-                          ? _product.image.startsWith('assets/')
-                              ? Image.asset(
-                                  _product.image,
-                                  fit: BoxFit.cover,
-                                )
-                              : Image.network(
-                                  _product.image,
-                                  fit: BoxFit.cover,
-                                )
-                          : Center(
-                              child: Text(
-                              'Rasm URLni kiriting!',
-                              style: TextStyle(
-                                color: hasImage ? Colors.black : Colors.red,
-                              ),
-                            )),
-                    ),
-                  ),
-                )
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }
